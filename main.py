@@ -1,62 +1,61 @@
 import cmath
-from collections import defaultdict
+import random
 
 class Qubit:
     def __init__(self, a, b):
-        self.a = a
-        self.b = b
-
-    def __str__(self):
-        return f'{self.a}|False> + {self.b}|True>'
+        norm = cmath.sqrt(abs(a)**2 + abs(b)**2)
+        self.a = a / norm
+        self.b = b / norm
 
     def measure(self):
         probability_false = abs(self.a)**2
-        probability_true = abs(self.b)**2
-        return 'False' if probability_false > probability_true else 'True'
+        if random.random() < probability_false:
+            self.a, self.b = 1, 0
+            return 'False'
+        else:
+            self.a, self.b = 0, 1
+            return 'True'
     
     def hadamard(self):
-        a = self.a
-        b = self.b
-        self.a = (a + b) / cmath.sqrt(2)
-        self.b = (a - b) / cmath.sqrt(2)
+        a_new = (self.a + self.b) / cmath.sqrt(2)
+        b_new = (self.a - self.b) / cmath.sqrt(2)
+        self.a, self.b = a_new, b_new
+        
+    def cnot(self, target):
+        if self.measure() == 'True':
+            target.a, target.b = target.b, target.a
+            
+    def pauli_x(self):
+        self.a, self.b = self.b, self.a
 
+    def pauli_z(self):
+        self.b *= -1
 
-class Basis:
-    def __init__(self, basis):
-        self.basis = basis
+def create_bell_pair():
+    q1 = Qubit(1, 0)
+    q2 = Qubit(1, 0)  
+    q1.hadamard()
+    q1.cnot(q2)
+    return q1, q2
 
-    def __str__(self):
-        return ', '.join(str(b) for b in self.basis)
+def teleport(q_input, q_bell1, q_bell2):
+    q_input.cnot(q_bell1)
+    q_input.hadamard()
+    
+    m1 = q_input.measure()
+    m2 = q_bell1.measure()
 
-class QV:
-    def __init__(self, mapping):
-        self.mapping = defaultdict(complex, mapping)
+    if m1 == 'True':
+        q_bell2.pauli_x()
+    if m2 == 'True':
+        q_bell2.pauli_z()
 
-    def __str__(self):
-        return ', '.join(f'{k}: {v}' for k, v in self.mapping.items())
+def main():
+    q_input = Qubit(0.6, 0.8) 
+    q_bell1, q_bell2 = create_bell_pair()
+    print(f'O estado original: {q_input.measure()}')
+    teleport(q_input, q_bell1, q_bell2)
+    print(f'O estado teletransportado: {q_bell2.measure()}')
 
-def qv(pairs):
-    return QV(dict(pairs))
-
-# Exemplo de uso
-qFalse = QV({Qubit(1, 0): 1})
-qTrue = QV({Qubit(0, 1): 1})
-qFT = qv([(Qubit(1, 0), 1/cmath.sqrt(2)), (Qubit(0, 1), 1/cmath.sqrt(2))])
-
-print(qFalse)
-print(qTrue)
-print(qFT)
-
-
-qubit = Qubit(cmath.sqrt(0.5), cmath.sqrt(0.5))
-print(qubit)
-print("Measurement:", qubit.measure())
-
-qubit.hadamard()
-print(qubit)
-
-basis = Basis([Qubit(1, 0), Qubit(0, 1)])
-print(basis)
-
-mapping = qv([(Qubit(1, 0), 0.5), (Qubit(0, 1), 0.5)])
-print(mapping)
+if __name__ == '__main__':
+    main()
