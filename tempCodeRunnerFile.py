@@ -50,16 +50,16 @@ def teleport(q_input, q_bell1, q_bell2):
     print(f'Medições: {m1} e {m2}')
 
     # Aplicando operações baseadas nas medições
-    if m1 == 'False' and m2 == 'True':
+    if m1 == 'True' and m2 == 'False':
         q_bell2.pauli_x()
-    elif m1 == 'True' and m2 == 'False':
+    elif m1 == 'False' and m2 == 'True':
         q_bell2.pauli_z()
     elif m1 == 'True' and m2 == 'True':
         q_bell2.pauli_x()
         q_bell2.pauli_z()
 
 def main():
-    q_input = Qubit(0.2, 0)  # Exemplo de qubit a ser teletransportado
+    q_input = Qubit(0.2, 0.9)  # Exemplo de qubit a ser teletransportado
     q_bell1, q_bell2 = create_bell_pair()
     original_state = q_input.measure()
     print(f'O estado original: {original_state}')
